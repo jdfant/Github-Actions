@@ -1,3 +1,4 @@
+---
 name: opentofu reusable workflow example
 
 on:
@@ -31,32 +32,30 @@ jobs:
         id: changes
         with:
           filters: |
-            dev:
-              - 'opentofu/dev/**'
-            stg:
-              - 'opentofu/stg/**'
+            triggered:
+              - 'terraform/**'
     outputs:
-      dev: ${{ steps.changes.outputs.dev }}
-      stg: ${{ steps.changes.outputs.stg }}
+      triggered: ${{ steps.changes.outputs.triggered }}
 
   opentofu_for_dev:
     name: "OpenTofu job for Development branch"
     needs: call-workflow
-    if: ${{ needs.call-workflow.outputs.dev == 'true' }}
+    if: ${{ needs.call-workflow.outputs.triggered == 'true' && github.ref == 'refs/heads/dev' }}
     uses: jdfant/github-actions/.github/workflows/opentofu-aws.yaml@main
     with:
       AWS_REGION: 'us-west-1'
       ACCT_NUM: '012345678910'
       ACCT_NAME: 'opentofu-test-account'
-      WORK_DIR: 'opentofu/dev'
+      WORK_DIR: 'opentofu'
 
   opentofu_for_stg:
     name: "OpenTofu job for Stage branch"
     needs: call-workflow
-    if: ${{ needs.call-workflow.outputs.stg == 'true' }}
+    if: ${{ needs.call-workflow.outputs.triggered == 'true' && github.ref == 'refs/heads/stg' }}
     uses: jdfant/github-actions/.github/workflows/opentofu-aws.yaml@main
     with:
       AWS_REGION: 'us-west-2'
       ACCT_NUM: '012345678910'
       ACCT_NAME: 'opentofu-test-account'
-      WORK_DIR: 'opentofu/stg'
+      WORK_DIR: 'opentofu'
+...
